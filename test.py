@@ -1,6 +1,6 @@
 import requests
 from time import time
-from openpyxl import Workbook
+from docx import Document
 import os
 from dotenv import load_dotenv
 
@@ -62,19 +62,37 @@ def test_api_performance(num_records, results):
 
     results.append([num_records, insert_time, select_time, update_time, delete_time])
 
-def save_results_to_excel(results):
-    """Сохранение результатов в Excel файл"""
-    wb = Workbook()
-    ws = wb.active
-    ws.title = "API Performance Results"
-    ws.append(["Кол-во записей", "INSERT (сек)", "SELECT (сек)", "UPDATE (сек)", "DELETE (сек)"])
+def save_results_to_word(results):
+    """Сохранение результатов в Word файл"""
+    doc = Document()
+    doc.add_heading("Результаты тестирования производительности API", level=1)
+
+    # Создание таблицы
+    table = doc.add_table(rows=1, cols=5)
+    table.style = 'Table Grid'
+    hdr_cells = table.rows[0].cells
+    hdr_cells[0].text = "Кол-во записей"
+    hdr_cells[1].text = "INSERT (сек)"
+    hdr_cells[2].text = "SELECT (сек)"
+    hdr_cells[3].text = "UPDATE (сек)"
+    hdr_cells[4].text = "DELETE (сек)"
+
+    # Добавление данных
     for row in results:
-        ws.append(row)
-    wb.save("api_performance_results.xlsx")
-    print("\nРезультаты сохранены в файл 'api_performance_results.xlsx'.")
+        row_cells = table.add_row().cells
+        row_cells[0].text = str(row[0])
+        row_cells[1].text = f"{row[1]:.2f}"
+        row_cells[2].text = f"{row[2]:.2f}"
+        row_cells[3].text = f"{row[3]:.2f}"
+        row_cells[4].text = f"{row[4]:.2f}"
+
+    # Сохранение файла
+    file_name = "Test.docx"
+    doc.save(file_name)
+    print(f"\nРезультаты сохранены в файл '{file_name}'.")
 
 results = []
 for records in [1000, 10000, 100000, 1000000]:
     test_api_performance(records, results)
 
-save_results_to_excel(results)
+save_results_to_word(results)
